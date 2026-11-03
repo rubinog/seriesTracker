@@ -1,6 +1,9 @@
 services:
   seriestracker:
-    build: .
+    build:
+      context: .
+      args:
+        APP_VERSION: ${APP_VERSION:-dev}
     restart: unless-stopped
     ports:
       - "3000:3000"

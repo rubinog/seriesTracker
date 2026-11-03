@@ -1,91 +1,107 @@
-# Series Tracker
+<div align="center">
+  <img src="web/public/icon-512.png" alt="Icona di Series Tracker" width="160" height="160">
+  <h1>Series Tracker</h1>
+  <p><strong>Tutte le tue serie. Un posto solo.</strong></p>
+  <p>La tua lista, i prossimi episodi e le statistiche — con il tuo server, i tuoi dati.</p>
+  <p>
+    <img alt="PWA" src="https://img.shields.io/badge/PWA-installabile-7657e8">
+    <img alt="Docker Compose" src="https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white">
+    <img alt="React" src="https://img.shields.io/badge/React-TypeScript-3178C6?logo=react&logoColor=white">
+    <img alt="Licenza TMDB" src="https://img.shields.io/badge/dati-TMDB-01b4e4">
+  </p>
+</div>
 
-Una web app **mobile-first** per tenere traccia delle serie TV, degli episodi visti e dei propri voti. Si installa come PWA e si può ospitare sul proprio server con Docker Compose.
+---
 
-Interfaccia in italiano, tema chiaro/scuro, ricerca e consigli personalizzati, statistiche e sincronizzazione multiutente tramite un server self-hosted.
+Series Tracker è una web app **mobile-first** per organizzare le serie che guardi. Installala come app sul telefono o sul desktop e sincronizza la tua libreria con un server che gestisci tu.
 
-## Funzionalità
+## ✨ Cosa puoi fare
 
-- Libreria personale: in corso, da vedere, completate e abbandonate.
-- Elenco dei prossimi episodi, con azione rapida per segnarli come visti.
-- Ricerca per titolo, filtri per genere/anno/voto e consigli basati sulla libreria.
-- Voti personali, statistiche su episodi, generi e tempo di visione stimato.
-- Tema chiaro, scuro o automatico e colore d'accento personalizzabile.
-- PWA installabile su telefono e desktop.
-- Account multiutente e dati salvati nel database SQLite sul proprio server.
+| | |
+|---|---|
+| 📺 **La tua libreria** | Organizza le serie in corso, da vedere, completate e abbandonate. |
+| ⏭️ **Prossimi episodi** | Scopri cosa guardare e segna gli episodi con un tocco. |
+| 🔎 **Cerca e scopri** | Cerca per titolo, filtra per genere, anno e voto, o ricevi consigli personalizzati. |
+| ⭐ **Voti e statistiche** | Dai un voto alle serie e scopri generi e serie più seguiti e il tempo di visione stimato. |
+| 🎨 **Il tuo stile** | Scegli tema chiaro, scuro o automatico e personalizza il colore d'accento. |
+| ☁️ **Self-hosted** | Account multiutente e libreria sincronizzata nel tuo database SQLite. |
+| 📲 **PWA** | Installabile su smartphone e desktop; interfaccia pensata prima per mobile. |
 
-## Requisiti
+## 🚀 Avvio rapido con Docker Compose
 
-- Docker Engine con il plugin Docker Compose (oppure Docker Desktop su Windows/macOS).
-- Un account TMDB per richiedere una chiave API.
-- Un browser aggiornato. Per installare la PWA sui dispositivi, il sito deve essere servito tramite HTTPS (localhost è un'eccezione per lo sviluppo).
+### 1. Crea una chiave API TMDB
 
-## Ottenere una chiave API TMDB
+Series Tracker usa [The Movie Database (TMDB)](https://www.themoviedb.org/) per i dati delle serie, gli episodi e i poster.
 
-Series Tracker usa [The Movie Database (TMDB)](https://www.themoviedb.org/) per cercare le serie e mostrare poster, stagioni, episodi e generi. La chiave viene usata **solo dal server** e non viene inclusa nel frontend.
+1. [Crea un account TMDB](https://www.themoviedb.org/signup) e verifica l'email.
+2. Accedi e apri [Impostazioni → API](https://www.themoviedb.org/settings/api).
+3. Registra un'applicazione per uso **Developer**, se richiesto.
+4. Copia la **API Read Access Token** (Bearer token) o la **API Key (v3 auth)**.
 
-1. Crea un account su [themoviedb.org/signup](https://www.themoviedb.org/signup) e verifica l'indirizzo email.
-2. Accedi e apri **Impostazioni** → **API**: [themoviedb.org/settings/api](https://www.themoviedb.org/settings/api).
-3. Se richiesto, registra una nuova applicazione scegliendo l'uso **Developer** e compilando le informazioni richieste.
-4. Copia la **API Read Access Token** (Bearer token) oppure la **API Key (v3 auth)**. Entrambe sono accettate dal server. Trattale come credenziali private e non inserirle nel codice o in un commit.
+Entrambi i formati sono supportati. La chiave è utilizzata dal backend, **mai esposta al browser**: custodiscila come una password. Per approfondire, consulta la [documentazione TMDB](https://developer.themoviedb.org/docs).
 
-Per informazioni sulle API consulta la [documentazione ufficiale TMDB](https://developer.themoviedb.org/docs).
+### 2. Configura il server
 
-> This product uses the TMDB API but is not endorsed or certified by TMDB.
-
-## Avvio con Docker Compose
-
-Clona il repository e spostati nella sua cartella:
+Clona il repository e crea la configurazione locale:
 
 ```powershell
 git clone https://github.com/rubinog/seriesTracker.git
 cd seriesTracker
+Copy-Item .env.example .env
 ```
 
-In alternativa, scarica il repository come ZIP ed estrailo.
+Apri `.env` e inserisci la chiave:
 
-1. Crea il file `.env` partendo dal modello:
+```dotenv
+TMDB_API_KEY=incolla_qui_la_tua_chiave
+ALLOW_SIGNUP=true
+```
 
-   ```powershell
-   Copy-Item .env.example .env
-   ```
+`.env` contiene segreti e viene escluso da Git. **Non condividerlo e non inserirlo nel repository.**
 
-2. Apri `.env` e inserisci la tua chiave TMDB:
-
-   ```dotenv
-   TMDB_API_KEY=incolla_qui_la_tua_api_read_access_token
-   ALLOW_SIGNUP=true
-   ```
-
-   Il file `.env` è ignorato da Git e resta sul tuo server. Non pubblicarlo né inviare la chiave a terzi.
-
-3. Costruisci e avvia l'app:
-
-   ```powershell
-   docker compose up -d --build
-   ```
-
-4. Apri [http://localhost:3000](http://localhost:3000) e crea il primo account.
-
-Per controllare i log:
+### 3. Avvia l'app
 
 ```powershell
-docker compose logs -f
+docker compose up -d --build
 ```
 
-Per fermare il servizio senza rimuovere i dati:
+Apri [http://localhost:3000](http://localhost:3000) e crea il tuo account.
+
+Comandi utili:
 
 ```powershell
-docker compose down
+docker compose logs -f       # segui i log
+docker compose down          # ferma l'app, conserva i dati
+docker compose up -d --build # ricostruisci dopo un aggiornamento
 ```
 
-L'applicazione è esposta sulla porta `3000`. Per renderla raggiungibile da Internet, configura un reverse proxy (per esempio Caddy, Traefik o nginx) con HTTPS; evita di esporre direttamente il servizio senza TLS. Dopo aver creato gli account desiderati, puoi impostare `ALLOW_SIGNUP=false` in `.env` e ricreare il container:
+### Aggiornamenti e versione
+
+La versione mostrata in **Altro** corrisponde all'abbreviazione del commit che ha generato la build. In sviluppo viene rilevata automaticamente da Git. Per creare un container con la versione corretta, dalla cartella del repository esegui:
 
 ```powershell
-docker compose up -d
+$env:APP_VERSION = (git rev-parse --short HEAD)
+docker compose up -d --build
+Remove-Item Env:APP_VERSION
 ```
 
-I dati persistenti, inclusi il database e il segreto di firma dei token, sono conservati in `./data`. Per un backup coerente, ferma prima il servizio, copia la cartella `data`, quindi riavvialo:
+Se non imposti `APP_VERSION`, la build Docker mostra `dev`.
+
+## 🔒 Pubblicazione sicura
+
+Docker Compose espone l'app sulla porta `3000`. Per raggiungerla da altri dispositivi o da Internet, mettila dietro un reverse proxy come Caddy, Traefik o nginx e abilita **HTTPS**: è necessario per installare la PWA e protegge le credenziali. Evita di esporre il container direttamente su Internet senza TLS.
+
+Dopo aver creato gli account desiderati, puoi chiudere le nuove registrazioni impostando in `.env`:
+
+```dotenv
+ALLOW_SIGNUP=false
+```
+
+Applica la modifica con `docker compose up -d`.
+
+### Dati e backup
+
+Database SQLite e segreto di firma dei token sono conservati in `./data`, montata nel container. Per creare un backup coerente:
 
 ```powershell
 docker compose down
@@ -93,13 +109,13 @@ Copy-Item -Recurse data data-backup
 docker compose up -d
 ```
 
-Conserva i backup in un luogo sicuro: contengono i dati degli account. Non cancellare `data` per aggiornare l'app.
+Proteggi il backup: contiene i dati degli account. **Non eliminare `data`** durante gli aggiornamenti.
 
-## Sviluppo locale
+## 🧑‍💻 Sviluppo locale
 
-Serve Node.js 24 o superiore (il backend usa `node:sqlite`). Apri due terminali PowerShell dalla cartella del repository.
+Richiede **Node.js 24 o superiore** (`node:sqlite`). Apri due terminali PowerShell nella cartella del repository.
 
-Terminale 1, backend:
+**Terminale 1 — backend**
 
 ```powershell
 cd server
@@ -108,7 +124,7 @@ $env:TMDB_API_KEY = "la_tua_chiave"
 node --disable-warning=ExperimentalWarning index.mjs
 ```
 
-Terminale 2, frontend:
+**Terminale 2 — frontend**
 
 ```powershell
 cd web
@@ -116,9 +132,9 @@ npm ci
 npm run dev -- --host
 ```
 
-Apri l'indirizzo indicato da Vite, di solito [http://localhost:5173](http://localhost:5173). Il server di sviluppo inoltra le richieste `/api` al backend su `localhost:3000`.
+Apri l'indirizzo mostrato da Vite (di solito [http://localhost:5173](http://localhost:5173)). Vite inoltra `/api` al server locale su `localhost:3000`.
 
-Per verificare il frontend:
+Controlli frontend:
 
 ```powershell
 cd web
@@ -126,12 +142,10 @@ npm run build
 npm run lint
 ```
 
-## Stack
+## 🧰 Tecnologie
 
-- Frontend: React, TypeScript, Vite, Tailwind CSS e `vite-plugin-pwa`.
-- Backend: Node.js 24, Fastify e SQLite (`node:sqlite`).
-- Metadati serie: API TMDB.
+**React · TypeScript · Vite · Tailwind CSS · PWA · Fastify · Node.js 24 · SQLite · Docker Compose · TMDB API**
 
-## Licenza e attribuzione
+## 🎬 Attribuzione
 
-I dati e le immagini delle serie sono forniti da TMDB. Series Tracker non è affiliato, approvato o certificato da TMDB. Consulta i [termini e le linee guida TMDB](https://www.themoviedb.org/documentation/api/terms-of-use) per i dettagli sull'uso dei dati e del marchio.
+Questo prodotto utilizza l'API TMDB, ma non è approvato né certificato da TMDB. Serie, immagini e metadati sono forniti da TMDB; consulta i [termini d'uso](https://www.themoviedb.org/documentation/api/terms-of-use) e le relative linee guida.

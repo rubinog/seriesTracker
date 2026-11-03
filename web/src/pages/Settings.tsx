@@ -34,6 +34,10 @@ export default function SettingsPage() {
           <p className="mb-2">{user}</p>
           <button onClick={logout} className="rounded-2xl border border-line px-4 py-2.5 text-sm">Esci</button>
         </section>
+        <section className="border-t border-line pt-4">
+          <h2 className="text-sm font-medium text-muted">Versione app</h2>
+          <p className="mt-1 font-mono text-xs text-muted">{__APP_VERSION__}</p>
+        </section>
       </div>
     </>
   )
