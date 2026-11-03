@@ -65,6 +65,34 @@ ALLOW_SIGNUP=true
 docker compose up -d --build
 ```
 
+### Pubblicazione automatica su Docker Hub
+
+Il repository GitHub include un workflow che costruisce e pubblica `ilrubio/seriestracker` a ogni push su `main`. Produce i tag `latest` e l'abbreviazione del commit; la versione mostrata nell'app corrisponde al commit sorgente.
+
+Per abilitarlo:
+
+1. Crea un **Access Token** Docker Hub con permesso di scrittura sul repository `ilrubio/seriestracker`.
+2. Nel repository GitHub apri **Settings → Secrets and variables → Actions → New repository secret**.
+3. Crea il secret `DOCKERHUB_TOKEN` e incolla il token Docker Hub. Il token non va aggiunto a `.env` o al codice.
+4. Esegui un push su `main`, oppure avvia manualmente **Actions → Publish Docker image → Run workflow**.
+
+Il workflow si occupa di autenticarsi, costruire l'immagine e pubblicarla. Puoi controllarne l'esito nella scheda **Actions** di GitHub.
+
+Sul server, per usare l'immagine pubblicata, sostituisci in `docker-compose.yml` la sezione `build` con:
+
+```yaml
+image: ilrubio/seriestracker:latest
+```
+
+Mantieni il resto del servizio (in particolare `.env` e il volume `./data:/data`) e aggiorna l'installazione con:
+
+```powershell
+docker compose pull
+docker compose up -d
+```
+
+Per installare una versione precisa, usa il tag abbreviato del commit al posto di `latest`.
+
 Apri [http://localhost:3000](http://localhost:3000) e crea il tuo account.
 
 Comandi utili:
