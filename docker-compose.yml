@@ -1,0 +1,11 @@
+services:
+  seriestracker:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      TMDB_API_KEY: ${TMDB_API_KEY:?Inserisci TMDB_API_KEY nel file .env}
+      ALLOW_SIGNUP: ${ALLOW_SIGNUP:-true}
+    volumes:
+      - ./data:/data

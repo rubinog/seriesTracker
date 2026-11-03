@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --bg: #f7f7fb;
+  --surface: #ffffff;
+  --text: #201d2b;
+  --muted: #817d8d;
+  --line: #ebe9f1;
+  --accent: #7657e8;
+}
+.dark {
+  --bg: #14131a;
+  --surface: #201e28;
+  --text: #f4f2fa;
+  --muted: #a19daf;
+  --line: #302d39;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+}
+
+html, body, #root { height: 100%; }
+body {
+  margin: 0;
+  background:
+    radial-gradient(ellipse at 8% -10%, color-mix(in srgb, var(--accent) 9%, transparent), transparent 38%),
+    var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 250ms ease, color 250ms ease;
+}
+
+button, a, input, select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  cursor: pointer;
+}
+
+::selection {
+  color: white;
+  background: var(--accent);
+}
