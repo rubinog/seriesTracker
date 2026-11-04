@@ -12,7 +12,7 @@ WORKDIR /app
 ENV NODE_ENV=production DATA_DIR=/data PORT=3000
 COPY server/package*.json ./
 RUN npm ci --omit=dev
-COPY server/index.mjs server/reset-password.mjs ./
+COPY server/index.mjs server/reset-password.mjs server/list-users.mjs ./
 COPY server/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 COPY --from=web /web/dist ./public
 RUN apk add --no-cache su-exec \

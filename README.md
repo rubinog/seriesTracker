@@ -139,11 +139,12 @@ Applica la modifica con `docker compose up -d`.
 
 Il container parte come root solo per sistemare i permessi di `./data`, poi esegue l'app come utente non privilegiato (`node`). Il `HEALTHCHECK` integrato permette a Docker di segnalare se il servizio non risponde.
 
-### Password dimenticata
+### Password o nome utente dimenticati
 
-Non c'è il recupero via email: da amministratore puoi reimpostare la password di un utente direttamente sul server.
+Non c'è il recupero via email: da amministratore puoi consultare gli utenti e reimpostare una password direttamente sul server.
 
 ```powershell
+docker compose exec -u node seriestracker node list-users.mjs
 docker compose exec -u node seriestracker node reset-password.mjs <utente> <nuova-password>
 ```
 
