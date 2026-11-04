@@ -60,11 +60,6 @@ export default function SettingsPage() {
           </div>
         </section>
         <section>
-          <h2 className="mb-2 text-sm font-medium text-muted">Account</h2>
-          <p className="mb-2">{user}</p>
-          <button onClick={logout} className="rounded-2xl border border-line px-4 py-2.5 text-sm">Esci</button>
-        </section>
-        <section>
           <h2 className="mb-2 text-sm font-medium text-muted">Backup</h2>
           <p className="mb-3 text-xs text-muted">Scarica le tue serie, i voti e gli episodi visti. L'importazione li unisce a quelli già presenti.</p>
           <div className="flex gap-2">
@@ -74,6 +69,11 @@ export default function SettingsPage() {
               onChange={e => { const f = e.target.files?.[0]; if (f) importBackup(f); e.target.value = '' }} />
           </div>
           {msg && <p className={`mt-2 text-xs ${msg.ok ? 'text-muted' : 'text-red-600'}`}>{msg.text}</p>}
+        </section>
+        <section>
+          <h2 className="mb-2 text-sm font-medium text-muted">Account</h2>
+          <p className="mb-3">{user}</p>
+          <button onClick={logout} className="w-full rounded-2xl bg-red-600 px-4 py-3 text-sm font-semibold text-white shadow-sm active:bg-red-700">Esci</button>
         </section>
         <section className="border-t border-line pt-4">
           <h2 className="text-sm font-medium text-muted">Versione app</h2>
