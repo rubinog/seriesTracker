@@ -9,6 +9,7 @@ interface Ctx {
   watched: Watched[]
   login: (mode: 'login' | 'register', u: string, p: string) => Promise<void>
   logout: () => void
+  reload: () => Promise<void>
   updateSettings: (s: Partial<Settings>) => void
   track: (s: { id: number; name: string; poster: string | null }, status?: Status) => void
   setStatus: (id: number, status: Status) => void
@@ -58,6 +59,7 @@ export function Provider({ children }: { children: ReactNode }) {
 
   const value: Ctx = {
     user, ready, settings, shows, watched,
+    reload: load,
     async login(mode, u, p) {
       const r = await post<{ token: string }>(`/auth/${mode}`, { username: u, password: p })
       setToken(r.token)

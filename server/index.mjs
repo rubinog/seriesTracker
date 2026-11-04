@@ -130,6 +130,47 @@ app.post('/api/shows/:id/watched', guard, async (req) => {
   return { ok: true };
 });
 
+// ---- Backup ----
+app.get('/api/export', guard, async (req, reply) => {
+  const uid = req.user.id;
+  const u = db.prepare('SELECT settings FROM users WHERE id = ?').get(uid);
+  const shows = db.prepare('SELECT tmdb_id AS id, name, poster, status, rating FROM shows WHERE user_id = ?').all(uid);
+  const watched = db.prepare('SELECT tmdb_id AS id, season, episode FROM watched WHERE user_id = ?').all(uid);
+  reply.header('Content-Disposition', 'attachment; filename="seriestracker-backup.json"');
+  return { app: 'seriestracker', version: 1, exportedAt: new Date().toISOString(), settings: JSON.parse(u.settings), shows, watched };
+});
+
+const STATUSES = new Set(['watching', 'planned', 'completed', 'dropped']);
+const isInt = (n) => Number.isInteger(n) && n >= 0 && n < 1e9;
+
+app.post('/api/import', { ...guard, bodyLimit: 20 * 1024 * 1024 }, async (req, reply) => {
+  const b = req.body;
+  if (!b || b.app !== 'seriestracker' || !Array.isArray(b.shows) || !Array.isArray(b.watched))
+    return reply.code(400).send({ error: 'invalid_backup' });
+  for (const s of b.shows)
+    if (!isInt(s?.id) || typeof s.name !== 'string' || s.name.length > 300 || !STATUSES.has(s.status)
+      || (s.poster != null && (typeof s.poster !== 'string' || s.poster.length > 200))
+      || (s.rating != null && !(Number.isInteger(s.rating) && s.rating >= 1 && s.rating <= 10)))
+      return reply.code(400).send({ error: 'invalid_backup' });
+  for (const w of b.watched)
+    if (!isInt(w?.id) || !isInt(w.season) || !isInt(w.episode)) return reply.code(400).send({ error: 'invalid_backup' });
+
+  const uid = req.user.id;
+  const now = Date.now();
+  const upShow = db.prepare(`INSERT INTO shows (user_id, tmdb_id, name, poster, status, rating, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(user_id, tmdb_id) DO UPDATE SET name=excluded.name, poster=excluded.poster,
+    status=excluded.status, rating=excluded.rating, updated_at=excluded.updated_at`);
+  const insWatched = db.prepare('INSERT OR IGNORE INTO watched (user_id, tmdb_id, season, episode, watched_at) VALUES (?,?,?,?,?)');
+  db.exec('BEGIN');
+  try {
+    for (const s of b.shows) upShow.run(uid, s.id, s.name, s.poster ?? null, s.status, s.rating ?? null, now);
+    for (const w of b.watched) insWatched.run(uid, w.id, w.season, w.episode, now);
+    db.exec('COMMIT');
+  } catch (err) { db.exec('ROLLBACK'); throw err; }
+  return { ok: true, shows: b.shows.length, episodes: b.watched.length };
+});
+
 // ---- Proxy TMDB (la chiave resta sul server) ----
 const tmdbCache = new Map();
 app.get('/api/tmdb/*', guard, async (req, reply) => {
