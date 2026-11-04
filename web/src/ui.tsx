@@ -29,7 +29,6 @@ export function PosterLink({ id, path, name, progress }: { id: number; path: str
 
 export const Title = ({ children }: { children: React.ReactNode }) => (
   <header className="px-5 pb-5 pt-[max(1.5rem,env(safe-area-inset-top))]">
-    <p className="mb-1.5 text-[0.65rem] font-bold uppercase tracking-[0.2em] text-accent">Series tracker</p>
-    <h1 className="text-[2rem] font-bold leading-tight tracking-[-0.04em]">{children}</h1>
+    <h1 className="text-[2rem] font-bold leading-tight tracking-[-0.04em]">{children}<span className="text-accent">.</span></h1>
   </header>
 )

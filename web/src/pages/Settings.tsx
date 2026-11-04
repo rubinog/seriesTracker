@@ -41,7 +41,7 @@ export default function SettingsPage() {
       <Title>Impostazioni</Title>
       <div className="space-y-6 px-5">
         <section>
-          <h2 className="mb-2 text-sm font-medium text-muted">Tema</h2>
+          <h2 className="mb-2 text-sm font-medium text-muted">Tema<span className="text-accent">.</span></h2>
           <div className="flex rounded-2xl border border-line bg-surface p-1">
             {themes.map(([v, l]) => (
               <button key={v} onClick={() => updateSettings({ theme: v })}
@@ -50,7 +50,7 @@ export default function SettingsPage() {
           </div>
         </section>
         <section>
-          <h2 className="mb-2 text-sm font-medium text-muted">Colore d'accento</h2>
+          <h2 className="mb-2 text-sm font-medium text-muted">Colore d'accento<span className="text-accent">.</span></h2>
           <div className="flex gap-3">
             {accents.map(c => (
               <button key={c} aria-label={c} onClick={() => updateSettings({ accent: c })}
@@ -60,25 +60,26 @@ export default function SettingsPage() {
           </div>
         </section>
         <section>
-          <h2 className="mb-2 text-sm font-medium text-muted">Backup</h2>
+          <h2 className="mb-2 text-sm font-medium text-muted">Backup<span className="text-accent">.</span></h2>
           <p className="mb-3 text-xs text-muted">Scarica le tue serie, i voti e gli episodi visti. L'importazione li unisce a quelli già presenti.</p>
-          <div className="flex gap-2">
-            <button onClick={exportBackup} className="flex-1 rounded-2xl border border-line bg-surface px-4 py-2.5 text-sm font-medium">Esporta</button>
-            <button onClick={() => fileRef.current?.click()} className="flex-1 rounded-2xl border border-line bg-surface px-4 py-2.5 text-sm font-medium">Importa</button>
+          <div className="flex rounded-2xl border border-line bg-surface p-1">
+            <button onClick={exportBackup} className="flex-1 rounded-xl py-2 text-sm font-medium active:bg-accent active:text-white">Esporta</button>
+            <button onClick={() => fileRef.current?.click()} className="flex-1 rounded-xl py-2 text-sm font-medium active:bg-accent active:text-white">Importa</button>
             <input ref={fileRef} type="file" accept="application/json,.json" hidden
               onChange={e => { const f = e.target.files?.[0]; if (f) importBackup(f); e.target.value = '' }} />
           </div>
           {msg && <p className={`mt-2 text-xs ${msg.ok ? 'text-muted' : 'text-red-600'}`}>{msg.text}</p>}
         </section>
         <section>
-          <h2 className="mb-2 text-sm font-medium text-muted">Account</h2>
+          <h2 className="mb-2 text-sm font-medium text-muted">Account<span className="text-accent">.</span></h2>
           <p className="mb-3">{user}</p>
           <button onClick={logout} className="w-full rounded-2xl bg-red-600 px-4 py-3 text-sm font-semibold text-white shadow-sm active:bg-red-700">Esci</button>
         </section>
         <section className="border-t border-line pt-4 text-center">
-          <h2 className="text-sm font-medium text-muted">Versione app</h2>
+          <h2 className="text-sm font-medium text-muted">Versione app<span className="text-accent">.</span></h2>
           <p className="mt-1 font-mono text-xs text-muted">{__APP_VERSION__}</p>
-          <p className="mt-3 text-sm font-medium italic">Track your shows, keep your freedom.</p>
+          <p className="mt-3 text-[0.65rem] font-bold uppercase tracking-[0.2em] text-accent">Series Tracker</p>
+          <p className="mt-1 text-sm font-medium italic">Track your shows, keep your freedom.</p>
           <p className="mx-auto mt-4 max-w-xs text-[11px] leading-snug text-muted">
             This product uses the{' '}
             <a href="https://www.themoviedb.org" target="_blank" rel="noreferrer" className="font-medium underline">TMDB</a>{' '}

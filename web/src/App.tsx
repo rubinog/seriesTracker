@@ -21,7 +21,15 @@ function Login() {
       onSubmit={async e => {
         e.preventDefault()
         setErr('')
-        try { await login(mode, u, p) } catch (x) { setErr((x as Error).message) }
+        try { await login(mode, u, p) } catch (x) {
+          const m = (x as Error).message
+          setErr(({
+            invalid_credentials: 'Username o password errati.',
+            too_many_attempts: 'Troppi tentativi. Riprova tra qualche minuto.',
+            username_taken: 'Username già in uso.',
+            signup_disabled: 'Le registrazioni sono disattivate.',
+          } as Record<string, string>)[m] ?? 'Impossibile completare la richiesta. Controlla i dati inseriti.')
+        }
       }}
     >
       <img src="/icon-192.png" alt="" className="mb-2 h-16 w-16 rounded-2xl shadow-md shadow-black/10" />

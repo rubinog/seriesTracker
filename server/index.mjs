@@ -46,8 +46,29 @@ CREATE TABLE IF NOT EXISTS watched (
 );
 `);
 
-const app = Fastify({ logger: true });
+const app = Fastify({ logger: true, trustProxy: process.env.TRUST_PROXY === 'true' });
 await app.register(jwt, { secret });
+
+// Limite ai tentativi di accesso (in memoria): 10 errori ogni 15 minuti per IP + utente
+const attempts = new Map();
+const WINDOW = 15 * 60e3, MAX_FAILS = 10;
+const blocked = (key) => {
+  const a = attempts.get(key);
+  return !!a && a.reset > Date.now() && a.n >= MAX_FAILS;
+};
+const fail = (key) => {
+  const a = attempts.get(key);
+  if (!a || a.reset <= Date.now()) attempts.set(key, { n: 1, reset: Date.now() + WINDOW });
+  else a.n++;
+};
+setInterval(() => { for (const [k, a] of attempts) if (a.reset <= Date.now()) attempts.delete(k); }, WINDOW).unref();
+
+const STATUSES = new Set(['watching', 'planned', 'completed', 'dropped']);
+const isInt = (n) => Number.isInteger(n) && n >= 0 && n < 1e9;
+const validShow = (s) => isInt(s?.id) && typeof s.name === 'string' && s.name.length > 0 && s.name.length <= 300
+  && STATUSES.has(s.status)
+  && (s.poster == null || (typeof s.poster === 'string' && s.poster.length <= 200))
+  && (s.rating == null || (Number.isInteger(s.rating) && s.rating >= 1 && s.rating <= 10));
 
 app.decorate('auth', async (req, reply) => {
   try { await req.jwtVerify(); } catch { reply.code(401).send({ error: 'unauthorized' }); }
@@ -71,9 +92,14 @@ app.post('/api/auth/register', creds, async (req, reply) => {
 
 app.post('/api/auth/login', creds, async (req, reply) => {
   const { username, password } = req.body;
+  const key = `${req.ip}|${username.toLowerCase()}`;
+  if (blocked(key)) return reply.code(429).send({ error: 'too_many_attempts' });
   const u = db.prepare('SELECT id, password_hash FROM users WHERE username = ?').get(username);
-  if (!u || !bcrypt.compareSync(password, u.password_hash))
+  if (!u || !bcrypt.compareSync(password, u.password_hash)) {
+    fail(key);
     return reply.code(401).send({ error: 'invalid_credentials' });
+  }
+  attempts.delete(key);
   return { token: app.jwt.sign({ id: u.id }, { expiresIn: '90d' }) };
 });
 
@@ -96,13 +122,15 @@ app.get('/api/library', guard, async (req) => {
   return { shows, watched };
 });
 
-app.put('/api/shows/:id', guard, async (req) => {
-  const { name, poster = null, status = 'watching', rating = null } = req.body;
+app.put('/api/shows/:id', guard, async (req, reply) => {
+  const { name, poster = null, status = 'watching', rating = null } = req.body ?? {};
+  const id = Number(req.params.id);
+  if (!validShow({ id, name, poster, status, rating })) return reply.code(400).send({ error: 'invalid_show' });
   db.prepare(`INSERT INTO shows (user_id, tmdb_id, name, poster, status, rating, updated_at)
     VALUES (?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(user_id, tmdb_id) DO UPDATE SET name=excluded.name, poster=excluded.poster,
     status=excluded.status, rating=excluded.rating, updated_at=excluded.updated_at`)
-    .run(req.user.id, Number(req.params.id), name, poster, status, rating, Date.now());
+    .run(req.user.id, id, name, poster, status, rating, Date.now());
   return { ok: true };
 });
 
@@ -114,9 +142,12 @@ app.delete('/api/shows/:id', guard, async (req) => {
 });
 
 // body: { episodes: [{season, episode}], watched: boolean }
-app.post('/api/shows/:id/watched', guard, async (req) => {
+app.post('/api/shows/:id/watched', guard, async (req, reply) => {
   const id = Number(req.params.id);
   const { episodes = [], watched = true } = req.body ?? {};
+  if (!isInt(id) || !Array.isArray(episodes) || episodes.length > 5000
+    || !episodes.every(e => isInt(e?.season) && isInt(e?.episode)))
+    return reply.code(400).send({ error: 'invalid_episodes' });
   const ins = db.prepare('INSERT OR IGNORE INTO watched (user_id, tmdb_id, season, episode, watched_at) VALUES (?,?,?,?,?)');
   const del = db.prepare('DELETE FROM watched WHERE user_id=? AND tmdb_id=? AND season=? AND episode=?');
   db.exec('BEGIN');
@@ -140,18 +171,12 @@ app.get('/api/export', guard, async (req, reply) => {
   return { app: 'seriestracker', version: 1, exportedAt: new Date().toISOString(), settings: JSON.parse(u.settings), shows, watched };
 });
 
-const STATUSES = new Set(['watching', 'planned', 'completed', 'dropped']);
-const isInt = (n) => Number.isInteger(n) && n >= 0 && n < 1e9;
-
 app.post('/api/import', { ...guard, bodyLimit: 20 * 1024 * 1024 }, async (req, reply) => {
   const b = req.body;
   if (!b || b.app !== 'seriestracker' || !Array.isArray(b.shows) || !Array.isArray(b.watched))
     return reply.code(400).send({ error: 'invalid_backup' });
   for (const s of b.shows)
-    if (!isInt(s?.id) || typeof s.name !== 'string' || s.name.length > 300 || !STATUSES.has(s.status)
-      || (s.poster != null && (typeof s.poster !== 'string' || s.poster.length > 200))
-      || (s.rating != null && !(Number.isInteger(s.rating) && s.rating >= 1 && s.rating <= 10)))
-      return reply.code(400).send({ error: 'invalid_backup' });
+    if (!validShow(s)) return reply.code(400).send({ error: 'invalid_backup' });
   for (const w of b.watched)
     if (!isInt(w?.id) || !isInt(w.season) || !isInt(w.episode)) return reply.code(400).send({ error: 'invalid_backup' });
 

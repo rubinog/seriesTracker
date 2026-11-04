@@ -1,20 +1,30 @@
 {
-  "name": "server",
+  "name": "seriestracker-server",
   "version": "1.0.0",
-  "description": "",
+  "description": "Series Tracker API: Fastify + SQLite, TMDB proxy and static PWA",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node --disable-warning=ExperimentalWarning index.mjs",
+    "reset-password": "node reset-password.mjs"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "tv-series",
+    "tracker",
+    "self-hosted",
+    "pwa",
+    "tmdb"
+  ],
+  "author": "rubinog",
   "license": "AGPL-3.0-only",
   "type": "commonjs",
   "dependencies": {
-    "@fastify/cors": "^11.4.0",
     "@fastify/jwt": "^10.2.6",
     "@fastify/static": "^10.1.8",
     "bcryptjs": "^3.0.3",
     "fastify": "^5.12.8"
+  },
+  "private": true,
+  "engines": {
+    "node": ">=24"
   }
 }

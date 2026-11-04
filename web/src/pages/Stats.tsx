@@ -13,12 +13,17 @@ const fmtDuration = (min: number) => {
   return { d, h, m }
 }
 
-function Card({ label, value, sub }: { label: string; value: React.ReactNode; sub?: string }) {
+const Icon = ({ d }: { d: string }) => (
+  <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d={d} /></svg>
+)
+
+function Card({ label, value, sub, icon }: { label: string; value: React.ReactNode; sub?: string; icon: string }) {
   return (
-    <div className="rounded-2xl border border-line bg-surface p-4 shadow-sm">
-      <p className="text-xs font-medium uppercase tracking-wide text-muted">{label}</p>
-      <p className="mt-1 text-2xl font-bold tracking-tight">{value}</p>
-      {sub && <p className="mt-0.5 text-xs text-muted">{sub}</p>}
+    <div className="rounded-[1.35rem] border border-line/80 bg-surface/90 p-4 shadow-[0_5px_20px_-14px_rgba(27,22,47,.35)]">
+      <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-accent/10 text-accent"><Icon d={icon} /></span>
+      <p className="mt-3 text-[1.7rem] font-bold leading-none tracking-tight">{value}</p>
+      <p className="mt-1.5 text-xs font-medium text-muted">{label}</p>
+      {sub && <p className="text-[11px] text-muted/80">{sub}</p>}
     </div>
   )
 }
@@ -26,15 +31,16 @@ function Card({ label, value, sub }: { label: string; value: React.ReactNode; su
 function Bars({ rows }: { rows: { label: string; value: number; display?: string }[] }) {
   const max = Math.max(1, ...rows.map(r => r.value))
   return (
-    <ul className="space-y-2.5">
-      {rows.map(r => (
+    <ul className="space-y-3">
+      {rows.map((r, i) => (
         <li key={r.label}>
-          <div className="mb-1 flex justify-between text-sm">
-            <span className="truncate">{r.label}</span>
-            <span className="text-muted">{r.display ?? r.value}</span>
+          <div className="mb-1 flex items-baseline justify-between text-sm">
+            <span className={`truncate ${i === 0 ? 'font-bold' : 'font-medium'}`}>{r.label}</span>
+            <span className="text-xs font-semibold text-muted">{r.display ?? r.value}</span>
           </div>
-          <div className="h-2 overflow-hidden rounded-full bg-line">
-            <div className="h-full rounded-full bg-accent transition-all" style={{ width: `${(r.value / max) * 100}%` }} />
+          <div className="h-2.5 overflow-hidden rounded-full bg-accent/10">
+            <div className={`h-full rounded-full bg-accent transition-all duration-700 ${i === 0 ? '' : 'opacity-60'}`}
+              style={{ width: `${(r.value / max) * 100}%` }} />
           </div>
         </li>
       ))}
@@ -42,10 +48,60 @@ function Bars({ rows }: { rows: { label: string; value: number; display?: string
   )
 }
 
+const STATUS_COLORS = ['var(--accent)', '#38bdf8', '#fbbf24', '#cbd5e1']
+
+function Donut({ rows }: { rows: { label: string; value: number }[] }) {
+  const total = rows.reduce((a, r) => a + r.value, 0) || 1
+  const R = 38, C = 2 * Math.PI * R
+  const arcs = rows.map((r, i) => ({ ...r, len: (r.value / total) * C, start: rows.slice(0, i).reduce((a, x) => a + (x.value / total) * C, 0) }))
+  return (
+    <div className="flex items-center gap-5">
+      <div className="relative h-32 w-32 shrink-0">
+        <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90">
+          <circle cx="50" cy="50" r={R} fill="none" strokeWidth="12" className="stroke-accent/10" />
+          {arcs.map((a, i) => a.value > 0 && (
+            <circle key={a.label} cx="50" cy="50" r={R} fill="none" strokeWidth="12" strokeLinecap="butt"
+              stroke={STATUS_COLORS[i]} strokeDasharray={`${Math.max(a.len - 1.5, 0)} ${C}`} strokeDashoffset={-a.start} />
+          ))}
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className="text-2xl font-bold leading-none">{rows.reduce((a, r) => a + r.value, 0)}</span>
+          <span className="mt-0.5 text-[10px] font-medium uppercase tracking-wide text-muted">serie</span>
+        </div>
+      </div>
+      <ul className="min-w-0 flex-1 space-y-2">
+        {rows.map((r, i) => (
+          <li key={r.label} className="flex items-center gap-2 text-sm">
+            <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: STATUS_COLORS[i] }} />
+            <span className="flex-1 truncate font-medium">{r.label}</span>
+            <span className="font-semibold text-muted">{r.value}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+function Histogram({ rows }: { rows: { label: string; value: number }[] }) {
+  const max = Math.max(1, ...rows.map(r => r.value))
+  return (
+    <div className="flex h-36 items-end gap-3">
+      {rows.map(r => (
+        <div key={r.label} className="flex h-full flex-1 flex-col items-center justify-end gap-1.5">
+          <span className="text-xs font-semibold text-muted">{r.value || ''}</span>
+          <div className="w-full rounded-t-xl bg-accent transition-all duration-700"
+            style={{ height: `${Math.max((r.value / max) * 100, r.value ? 8 : 3)}%`, opacity: r.value ? 1 : 0.15 }} />
+          <span className="text-[11px] font-semibold text-amber-500">{r.label.length}★</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
   <section className="px-5 pb-6">
-    <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">{title}</h2>
-    <div className="rounded-2xl border border-line bg-surface p-4">{children}</div>
+    <h2 className="mb-3 text-base font-bold tracking-tight">{title}<span className="text-accent">.</span></h2>
+    <div className="rounded-[1.35rem] border border-line/80 bg-surface/90 p-4 shadow-[0_5px_20px_-14px_rgba(27,22,47,.35)]">{children}</div>
   </section>
 )
 
@@ -119,20 +175,22 @@ export default function Stats() {
       <Title>Statistiche</Title>
 
       <section className="px-5 pb-6">
-        <div className="rounded-3xl bg-accent p-5 text-white shadow-md">
-          <p className="text-sm font-medium opacity-80">Tempo passato a guardare serie</p>
-          <p className="mt-1 text-4xl font-bold tracking-tight">
-            {t.d > 0 && <>{t.d}<span className="text-lg font-medium opacity-80">g </span></>}
-            {t.h}<span className="text-lg font-medium opacity-80">h </span>
+        <div className="relative overflow-hidden rounded-[1.75rem] bg-gradient-to-br from-accent to-accent/60 p-6 text-white shadow-lg shadow-accent/25">
+          <div className="pointer-events-none absolute -right-8 -top-10 h-40 w-40 rounded-full bg-white/15" />
+          <div className="pointer-events-none absolute -bottom-12 right-10 h-28 w-28 rounded-full bg-white/10" />
+          <p className="relative text-xs font-semibold uppercase tracking-[0.15em] opacity-80">Tempo davanti allo schermo</p>
+          <p className="relative mt-2 text-5xl font-bold leading-none tracking-tight">
+            {t.d > 0 && <>{t.d}<span className="mr-2 text-lg font-medium opacity-80">g</span></>}
+            {t.h}<span className="mr-2 text-lg font-medium opacity-80">h</span>
             {t.m}<span className="text-lg font-medium opacity-80">min</span>
           </p>
-          <p className="mt-1 text-sm opacity-80">≈ {(st.minutes / 60).toFixed(0)} ore · stima sulla durata media degli episodi</p>
+          <p className="relative mt-3 text-xs opacity-80">≈ {(st.minutes / 60).toFixed(0)} ore · stima sulla durata media degli episodi</p>
         </div>
         <div className="mt-3 grid grid-cols-2 gap-3">
-          <Card label="Episodi visti" value={watched.length} />
-          <Card label="Serie nella lista" value={shows.length} sub={`${completed} completate`} />
-          <Card label="Voto medio" value={st.avg ? `★ ${st.avg.toFixed(1)}` : '—'} sub={`${st.ratedCount} serie votate`} />
-          <Card label="Serie in corso" value={shows.filter(s => s.status === 'watching').length} sub={`${shows.filter(s => s.status === 'planned').length} da vedere`} />
+          <Card icon="M5 3l14 9-14 9V3z" label="Episodi visti" value={watched.length} />
+          <Card icon="M4 6h16M4 12h16M4 18h10" label="Serie nella lista" value={shows.length} sub={`${completed} completate`} />
+          <Card icon="M12 2l3 7 7 .6-5.3 4.7 1.6 7.2L12 17.8 5.7 21.5l1.6-7.2L2 9.6 9 9z" label="Voto medio" value={st.avg ? st.avg.toFixed(1) : '—'} sub={`${st.ratedCount} serie votate`} />
+          <Card icon="M12 8v4l3 2M12 3a9 9 0 100 18 9 9 0 000-18z" label="Serie in corso" value={shows.filter(s => s.status === 'watching').length} sub={`${shows.filter(s => s.status === 'planned').length} da vedere`} />
         </div>
       </section>
 
@@ -143,19 +201,23 @@ export default function Stats() {
       )}
 
       <Section title="Le tue serie per stato">
-        <Bars rows={st.byStatus} />
+        <Donut rows={st.byStatus} />
       </Section>
 
       {st.topShows.length > 0 && (
         <Section title="Più tempo dedicato">
-          <ul className="space-y-3">
-            {st.topShows.map(x => (
+          <ul className="space-y-3.5">
+            {st.topShows.map((x, i) => (
               <li key={x.show!.id}>
                 <Link to={`/show/${x.show!.id}`} className="flex items-center gap-3">
-                  <div className="w-10 shrink-0"><Poster path={x.show!.poster} name={x.show!.name} /></div>
+                  <span className={`w-5 shrink-0 text-center text-lg font-bold ${i === 0 ? 'text-accent' : 'text-muted/60'}`}>{i + 1}</span>
+                  <div className="w-11 shrink-0"><Poster path={x.show!.poster} name={x.show!.name} /></div>
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-medium">{x.show!.name}</span>
+                    <span className="block truncate text-sm font-bold tracking-tight">{x.show!.name}</span>
                     <span className="block text-xs text-muted">{x.n} episodi · {Math.round(x.min / 60)} h</span>
+                    <span className="mt-1.5 block h-1.5 overflow-hidden rounded-full bg-accent/10">
+                      <span className="block h-full rounded-full bg-accent" style={{ width: `${(x.min / st.topShows[0].min) * 100}%`, opacity: i === 0 ? 1 : 0.6 }} />
+                    </span>
                   </span>
                 </Link>
               </li>
@@ -166,8 +228,8 @@ export default function Stats() {
 
       {st.ratedCount > 0 && (
         <Section title="Distribuzione dei voti">
-          <Bars rows={st.dist} />
-          <p className="mt-4 text-xs text-muted">Preferite: {st.top.map(s => s.name).join(', ')}</p>
+          <Histogram rows={st.dist} />
+          <p className="mt-4 text-xs text-muted">Preferite: <span className="font-semibold text-text">{st.top.map(s => s.name).join(', ')}</span></p>
         </Section>
       )}
     </>

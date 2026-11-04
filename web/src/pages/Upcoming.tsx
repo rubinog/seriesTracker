@@ -90,8 +90,8 @@ export default function Upcoming() {
 
       {toWatch.length > 0 && (
         <section className="px-5 pb-6">
-          <h2 className="mb-3 flex items-center gap-2 text-sm font-bold tracking-tight">
-            <span className="h-2 w-2 rounded-full bg-accent" />Da guardare
+          <h2 className="mb-3 text-base font-bold tracking-tight">
+            Da guardare<span className="text-accent">.</span>
           </h2>
           <ul className="space-y-3">
             {toWatch.map(x => (
@@ -116,8 +116,8 @@ export default function Upcoming() {
 
       {soon.length > 0 && (
         <section className="px-5 pb-6">
-          <h2 className="mb-3 flex items-center gap-2 text-sm font-bold tracking-tight">
-            <span className="h-2 w-2 rounded-full bg-sky-400" />In arrivo
+          <h2 className="mb-3 text-base font-bold tracking-tight">
+            In arrivo<span className="text-accent">.</span>
           </h2>
           <ul className="divide-y divide-line/80 overflow-hidden rounded-[1.35rem] border border-line/80 bg-surface/90 shadow-[0_5px_20px_-14px_rgba(27,22,47,.35)]">
             {soon.map(x => (

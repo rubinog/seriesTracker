@@ -36,7 +36,7 @@ Series Tracker usa [The Movie Database (TMDB)](https://www.themoviedb.org/) per 
 1. [Crea un account TMDB](https://www.themoviedb.org/signup) e verifica l'email.
 2. Accedi e apri [Impostazioni → API](https://www.themoviedb.org/settings/api).
 3. Registra un'applicazione per uso **Developer**, se richiesto.
-4. Copia la **API Read Access Token** (Bearer token) o la **API Key (v3 auth)**.
+4. Copia il **Read Access Token** (consigliato) oppure la **API Key (v3)**.
 
 Entrambi i formati sono supportati. La chiave è utilizzata dal backend, **mai esposta al browser**: custodiscila come una password. Per approfondire, consulta la [documentazione TMDB](https://developer.themoviedb.org/docs).
 
@@ -65,24 +65,7 @@ ALLOW_SIGNUP=true
 docker compose up -d --build
 ```
 
-### Usare l'immagine già pronta (opzionale)
-
-Se non vuoi compilare il progetto, puoi usare l'immagine pubblicata su Docker Hub: in `docker-compose.yml` sostituisci la sezione `build` con
-
-```yaml
-image: ilrubio/seriestracker:latest
-```
-
-Mantieni il resto del servizio (in particolare `.env` e il volume `./data:/data`) e aggiorna con:
-
-```powershell
-docker compose pull
-docker compose up -d
-```
-
-Per fissare una versione precisa, usa al posto di `latest` il tag con l'abbreviazione del commit.
-
-Apri [http://localhost:3000](http://localhost:3000) e crea il tuo account.
+Apri [http://localhost:3000](http://localhost:3000) e crea il tuo account. Fatto! 🎉
 
 Comandi utili:
 
@@ -91,6 +74,44 @@ docker compose logs -f       # segui i log
 docker compose down          # ferma l'app, conserva i dati
 docker compose up -d --build # ricostruisci dopo un aggiornamento
 ```
+
+<details>
+<summary><strong>Preferisci non compilare? Usa l'immagine già pronta</strong></summary>
+
+In `docker-compose.yml` sostituisci la sezione `build` con
+
+```yaml
+image: ilrubio/seriestracker:latest
+```
+
+Mantieni il resto del servizio (`.env` e il volume `./data:/data`) e aggiorna con `docker compose pull` seguito da `docker compose up -d`. Per fissare una versione usa, al posto di `latest`, il tag con l'abbreviazione del commit.
+
+</details>
+
+### ⚙️ Configurazione
+
+| Variabile | Default | Descrizione |
+|---|---|---|
+| `TMDB_API_KEY` | — | **Obbligatoria.** Read Access Token o API Key v3 di TMDB. |
+| `ALLOW_SIGNUP` | `true` | Se `false`, chiude le nuove registrazioni. |
+| `TRUST_PROXY` | `false` | Imposta `true` dietro un reverse proxy, così il limite di tentativi di login usa l'IP reale. |
+| `PORT` | `3000` | Porta del server. |
+| `DATA_DIR` | `/data` | Cartella di database SQLite e segreto JWT. |
+| `JWT_SECRET` | generato | Segreto di firma dei token (altrimenti creato in `DATA_DIR`). |
+| `APP_VERSION` | `dev` | Versione mostrata in **Altro**. |
+
+Il login è protetto da un limite di tentativi: dopo 10 errori in 15 minuti per utente e IP, l'accesso viene bloccato temporaneamente.
+
+### 🏗️ Come funziona
+
+```mermaid
+flowchart LR
+  A["📱 PWA (React)"] -->|/api| B["Fastify"]
+  B --> C[("SQLite · ./data")]
+  B -->|chiave nascosta| D["TMDB"]
+```
+
+La chiave TMDB resta sul server: il browser parla solo con la tua istanza.
 
 ### Aggiornamenti e versione
 
@@ -116,12 +137,14 @@ ALLOW_SIGNUP=false
 
 Applica la modifica con `docker compose up -d`.
 
+Il container parte come root solo per sistemare i permessi di `./data`, poi esegue l'app come utente non privilegiato (`node`). Il `HEALTHCHECK` integrato permette a Docker di segnalare se il servizio non risponde.
+
 ### Password dimenticata
 
 Non c'è il recupero via email: da amministratore puoi reimpostare la password di un utente direttamente sul server.
 
 ```powershell
-docker compose exec seriestracker node reset-password.mjs <utente> <nuova-password>
+docker compose exec -u node seriestracker node reset-password.mjs <utente> <nuova-password>
 ```
 
 In sviluppo locale, dalla cartella `server`: `node reset-password.mjs <utente> <nuova-password>`. La nuova password deve avere almeno 8 caratteri. Se usi l'immagine di Docker Hub, serve una versione che includa lo script (aggiorna con `docker compose pull`).

@@ -67,7 +67,7 @@ export default function ShowPage() {
         <button onClick={() => nav(-1)} className="absolute left-4 top-[max(1rem,env(safe-area-inset-top))] rounded-full bg-surface/90 px-3.5 py-1.5 text-sm shadow">← Indietro</button>
       </div>
       <div className="-mt-10 px-5">
-        <h1 className="text-3xl font-bold tracking-tight">{d.name}</h1>
+        <h1 className="text-3xl font-bold tracking-tight">{d.name}<span className="text-accent">.</span></h1>
         <p className="mt-1 text-sm text-muted">
           {d.first_air_date?.slice(0, 4)} · {d.number_of_seasons} stagioni · {d.genres.map(g => g.name).join(', ')}
         </p>

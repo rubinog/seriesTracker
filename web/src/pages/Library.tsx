@@ -12,11 +12,11 @@ export default function Library() {
   return (
     <>
       <Title>Le mie serie</Title>
-      <div className="flex gap-2 overflow-x-auto px-5 pb-4">
+      <div className="mx-5 mb-4 flex rounded-2xl border border-line/80 bg-surface/75 p-1">
         {order.map(s => (
           <button key={s} onClick={() => setTab(s)}
-            className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold transition-all ${
-              tab === s ? 'bg-accent text-white shadow-md shadow-accent/20' : 'border border-line/80 bg-surface/80 text-muted'}`}>
+            className={`flex-1 whitespace-nowrap rounded-xl px-1 py-2 text-xs font-semibold transition-all ${
+              tab === s ? 'bg-accent text-white shadow-sm shadow-accent/20' : 'text-muted'}`}>
             {statusLabel[s]} <span className="opacity-70">{shows.filter(x => x.status === s).length}</span>
           </button>
         ))}
