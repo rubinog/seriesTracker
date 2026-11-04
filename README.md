@@ -27,9 +27,9 @@ Series Tracker è una web app **mobile-first** per organizzare le serie che guar
 | ☁️ **Self-hosted** | Account multiutente e libreria sincronizzata nel tuo database SQLite. |
 | 📲 **PWA** | Installabile su smartphone e desktop; interfaccia pensata prima per mobile. |
 
-## 🚀 Avvio rapido con Docker Compose
+## 🚀 Per iniziare
 
-### 1. Crea una chiave API TMDB
+### 1. Crea una chiave API TMDB (serve in ogni caso)
 
 Series Tracker usa [The Movie Database (TMDB)](https://www.themoviedb.org/) per i dati delle serie, gli episodi e i poster.
 
@@ -40,9 +40,45 @@ Series Tracker usa [The Movie Database (TMDB)](https://www.themoviedb.org/) per 
 
 Entrambi i formati sono supportati. La chiave è utilizzata dal backend, **mai esposta al browser**: custodiscila come una password. Per approfondire, consulta la [documentazione TMDB](https://developer.themoviedb.org/docs).
 
-### 2. Configura il server
+### 2. Scegli come eseguirla
 
-Clona il repository e crea la configurazione locale:
+| Opzione | Ideale per |
+|---|---|
+| [**A. Docker Compose + immagine Docker Hub**](#a-docker-compose-con-limmagine-pronta-consigliato) | Self-hosting: nessun clone, nessuna build. |
+| [**B. Docker Compose da sorgenti**](#b-docker-compose-dai-sorgenti) | Chi vuole compilare o modificare il progetto. |
+| [**C. `docker run`**](#c-docker-run) | Un singolo container, senza Compose. |
+| [**D. Sviluppo locale (Node.js)**](#-sviluppo-locale) | Sviluppo, senza Docker. |
+
+#### A. Docker Compose con l'immagine pronta (consigliato)
+
+Basta una cartella con due file. Crea `docker-compose.yml`:
+
+```yaml
+services:
+  seriestracker:
+    image: ilrubio/seriestracker:latest
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      TMDB_API_KEY: ${TMDB_API_KEY:?Inserisci TMDB_API_KEY nel file .env}
+      ALLOW_SIGNUP: ${ALLOW_SIGNUP:-true}
+    volumes:
+      - ./data:/data
+```
+
+e un file `.env` accanto, con la tua chiave:
+
+```dotenv
+TMDB_API_KEY=incolla_qui_la_tua_chiave
+ALLOW_SIGNUP=true
+```
+
+Avvia con `docker compose up -d` e apri [http://localhost:3000](http://localhost:3000): crea il tuo account e hai finito! 🎉
+
+Per aggiornare: `docker compose pull` e `docker compose up -d`. Per fissare una versione usa, al posto di `latest`, il tag con l'abbreviazione del commit.
+
+#### B. Docker Compose dai sorgenti
 
 ```powershell
 git clone https://github.com/rubinog/seriesTracker.git
@@ -59,34 +95,30 @@ ALLOW_SIGNUP=true
 
 `.env` contiene segreti e viene escluso da Git. **Non condividerlo e non inserirlo nel repository.**
 
-### 3. Avvia l'app
-
 ```powershell
 docker compose up -d --build
 ```
 
-Apri [http://localhost:3000](http://localhost:3000) e crea il tuo account. Fatto! 🎉
+Apri [http://localhost:3000](http://localhost:3000). Dopo ogni aggiornamento del codice ricostruisci con `docker compose up -d --build`.
 
-Comandi utili:
+#### C. `docker run`
+
+```bash
+docker run -d --name seriestracker --restart unless-stopped \
+  -p 3000:3000 \
+  -e TMDB_API_KEY=incolla_qui_la_tua_chiave \
+  -v "$(pwd)/data:/data" \
+  ilrubio/seriestracker:latest
+```
+
+Per aggiornare: `docker pull ilrubio/seriestracker:latest`, poi `docker rm -f seriestracker` e rilancia lo stesso comando (i dati restano in `./data`).
+
+#### Comandi utili (Compose)
 
 ```powershell
 docker compose logs -f       # segui i log
 docker compose down          # ferma l'app, conserva i dati
-docker compose up -d --build # ricostruisci dopo un aggiornamento
 ```
-
-<details>
-<summary><strong>Preferisci non compilare? Usa l'immagine già pronta</strong></summary>
-
-In `docker-compose.yml` sostituisci la sezione `build` con
-
-```yaml
-image: ilrubio/seriestracker:latest
-```
-
-Mantieni il resto del servizio (`.env` e il volume `./data:/data`) e aggiorna con `docker compose pull` seguito da `docker compose up -d`. Per fissare una versione usa, al posto di `latest`, il tag con l'abbreviazione del commit.
-
-</details>
 
 ### ⚙️ Configurazione
 
@@ -166,7 +198,7 @@ Proteggi il backup: contiene i dati degli account. **Non eliminare `data`** dura
 
 ## 🧑‍💻 Sviluppo locale
 
-Richiede **Node.js 24 o superiore** (`node:sqlite`). Apri due terminali PowerShell nella cartella del repository.
+Opzione D, senza Docker. Richiede **Node.js 24 o superiore** (`node:sqlite`) e la [chiave TMDB](#1-crea-una-chiave-api-tmdb-serve-in-ogni-caso). Clona il repository (vedi opzione B), poi apri due terminali PowerShell nella sua cartella.
 
 **Terminale 1 — backend**
 
