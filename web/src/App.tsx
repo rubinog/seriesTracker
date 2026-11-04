@@ -26,7 +26,7 @@ function Login() {
     >
       <img src="/icon-192.png" alt="" className="mb-2 h-16 w-16 rounded-2xl shadow-md shadow-black/10" />
       <h1 className="text-4xl font-bold tracking-tight">Serie<span className="text-accent">.</span></h1>
-      <p className="mb-4 text-muted">Tieni traccia di quello che guardi.</p>
+      <p className="mb-4 text-muted">Track your shows, keep your freedom.</p>
       <input className={field} placeholder="Username" autoCapitalize="none" value={u} onChange={e => setU(e.target.value)} />
       <input className={field} type="password" placeholder="Password (min 8)" value={p} onChange={e => setP(e.target.value)} />
       {err && <p className="text-sm text-red-600">{err}</p>}

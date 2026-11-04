@@ -1,7 +1,7 @@
 <div align="center">
   <img src="web/public/icon-512.png" alt="Icona di Series Tracker" width="160" height="160">
   <h1>Series Tracker</h1>
-  <p><strong>Tutte le tue serie. Un posto solo.</strong></p>
+  <p><strong>Track your shows, keep your freedom.</strong></p>
   <p>La tua lista, i prossimi episodi e le statistiche — con il tuo server, i tuoi dati.</p>
   <p>
     <img alt="PWA" src="https://img.shields.io/badge/PWA-installabile-7657e8">
@@ -65,33 +65,22 @@ ALLOW_SIGNUP=true
 docker compose up -d --build
 ```
 
-### Pubblicazione automatica su Docker Hub
+### Usare l'immagine già pronta (opzionale)
 
-Il repository GitHub include un workflow che costruisce e pubblica `ilrubio/seriestracker` a ogni push su `main`. Produce i tag `latest` e l'abbreviazione del commit; la versione mostrata nell'app corrisponde al commit sorgente.
-
-Per abilitarlo:
-
-1. Crea un **Access Token** Docker Hub con permesso di scrittura sul repository `ilrubio/seriestracker`.
-2. Nel repository GitHub apri **Settings → Secrets and variables → Actions → New repository secret**.
-3. Crea il secret `DOCKERHUB_TOKEN` e incolla il token Docker Hub. Il token non va aggiunto a `.env` o al codice.
-4. Esegui un push su `main`, oppure avvia manualmente **Actions → Publish Docker image → Run workflow**.
-
-Il workflow si occupa di autenticarsi, costruire l'immagine e pubblicarla. Puoi controllarne l'esito nella scheda **Actions** di GitHub.
-
-Sul server, per usare l'immagine pubblicata, sostituisci in `docker-compose.yml` la sezione `build` con:
+Se non vuoi compilare il progetto, puoi usare l'immagine pubblicata su Docker Hub: in `docker-compose.yml` sostituisci la sezione `build` con
 
 ```yaml
 image: ilrubio/seriestracker:latest
 ```
 
-Mantieni il resto del servizio (in particolare `.env` e il volume `./data:/data`) e aggiorna l'installazione con:
+Mantieni il resto del servizio (in particolare `.env` e il volume `./data:/data`) e aggiorna con:
 
 ```powershell
 docker compose pull
 docker compose up -d
 ```
 
-Per installare una versione precisa, usa il tag abbreviato del commit al posto di `latest`.
+Per fissare una versione precisa, usa al posto di `latest` il tag con l'abbreviazione del commit.
 
 Apri [http://localhost:3000](http://localhost:3000) e crea il tuo account.
 
@@ -127,9 +116,21 @@ ALLOW_SIGNUP=false
 
 Applica la modifica con `docker compose up -d`.
 
+### Password dimenticata
+
+Non c'è il recupero via email: da amministratore puoi reimpostare la password di un utente direttamente sul server.
+
+```powershell
+docker compose exec seriestracker node reset-password.mjs <utente> <nuova-password>
+```
+
+In sviluppo locale, dalla cartella `server`: `node reset-password.mjs <utente> <nuova-password>`. La nuova password deve avere almeno 8 caratteri. Se usi l'immagine di Docker Hub, serve una versione che includa lo script (aggiorna con `docker compose pull`).
+
 ### Dati e backup
 
-Database SQLite e segreto di firma dei token sono conservati in `./data`, montata nel container. Per creare un backup coerente:
+Puoi scaricare e reimportare le tue serie, i voti e gli episodi visti da **Altro → Backup** (file JSON).
+
+Database SQLite e segreto di firma dei token sono conservati in `./data`, montata nel container. Per creare un backup completo del server:
 
 ```powershell
 docker compose down
@@ -173,6 +174,10 @@ npm run lint
 ## 🧰 Tecnologie
 
 **React · TypeScript · Vite · Tailwind CSS · PWA · Fastify · Node.js 24 · SQLite · Docker Compose · TMDB API**
+
+## 📄 Licenza
+
+Distribuito con licenza [AGPL-3.0](LICENSE): libero di usarlo, modificarlo e condividerlo, a patto che le versioni modificate (anche se offerte come servizio online) restino open source con la stessa licenza.
 
 ## 🎬 Attribuzione
 

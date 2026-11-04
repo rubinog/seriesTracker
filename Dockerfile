@@ -12,7 +12,7 @@ WORKDIR /app
 ENV NODE_ENV=production DATA_DIR=/data PORT=3000
 COPY server/package*.json ./
 RUN npm ci --omit=dev
-COPY server/index.mjs ./
+COPY server/index.mjs server/reset-password.mjs ./
 COPY --from=web /web/dist ./public
 VOLUME /data
 EXPOSE 3000

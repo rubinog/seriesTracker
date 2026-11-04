@@ -75,9 +75,22 @@ export default function SettingsPage() {
           <p className="mb-3">{user}</p>
           <button onClick={logout} className="w-full rounded-2xl bg-red-600 px-4 py-3 text-sm font-semibold text-white shadow-sm active:bg-red-700">Esci</button>
         </section>
-        <section className="border-t border-line pt-4">
+        <section className="border-t border-line pt-4 text-center">
           <h2 className="text-sm font-medium text-muted">Versione app</h2>
           <p className="mt-1 font-mono text-xs text-muted">{__APP_VERSION__}</p>
+          <p className="mt-3 text-sm font-medium italic">Track your shows, keep your freedom.</p>
+          <p className="mx-auto mt-4 max-w-xs text-[11px] leading-snug text-muted">
+            This product uses the{' '}
+            <a href="https://www.themoviedb.org" target="_blank" rel="noreferrer" className="font-medium underline">TMDB</a>{' '}
+            API but is not endorsed or certified by TMDB.
+          </p>
+          <p className="mx-auto mt-3 max-w-xs text-[11px] leading-snug text-muted">
+            Free and open source software, licensed under{' '}
+            <a href="https://github.com/rubinog/seriesTracker/blob/main/LICENSE" target="_blank" rel="noreferrer" className="font-medium underline">AGPL-3.0</a>.
+            <br />
+            Made by{' '}
+            <a href="https://github.com/rubinog/seriesTracker" target="_blank" rel="noreferrer" className="font-medium underline">rubinog on GitHub</a>.
+          </p>
         </section>
       </div>
     </>
